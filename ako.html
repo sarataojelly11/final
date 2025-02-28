@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waze & Tourist Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+        }
+        .cover-photo {
+            width: 100%;
+            max-width: 1000px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        .search-container {
+            background-color: rgba(255, 209, 217, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="bilat.jpeg.jpg" alt="Cover Photo" class="cover-photo">
+
+        <div class="search-container">
+            <h2>Search Your Destination</h2>
+            <input type="text" placeholder="Enter a location..." id="search">
+            <button onclick="performSearch()">Search</button>
+        </div>
+
+        <div id="results"></div> <!-- Output area -->
+    </div>
+
+    <script>
+        async function performSearch() {
+            const query = document.getElementById("search").value.trim();
+            if (!query) {
+                alert("Please enter a search term.");
+                return;
+            }
+
+            const url = `https://google-map-places.p.rapidapi.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&language=en&region=en&result_type=administrative_area_level_1&location_type=APPROXIMATE`;
+
+            const options = {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-key': '873513ebe2mshcfb728c9f5e7e99p161be5jsna347d1c4fa44',
+                    'x-rapidapi-host': 'google-map-places.p.rapidapi.com'
+                }
+            };
+
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                console.error(error);
+                alert("An error occurred while fetching data.");
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "<h3>Results:</h3>";
+
+            if (data.results && data.results.length > 0) {
+                data.results.forEach((item, index) => {
+                    const lat = item.geometry.location.lat;
+                    const lng = item.geometry.location.lng;
+                    const address = item.formatted_address;
+                    
+                    resultsDiv.innerHTML += `
+                        <p><strong>${address}</strong></p>
+                        <button onclick="openWaze(${lat}, ${lng})">Get Directions on Waze</button>
+                        <hr>
+                    `;
+                });
+            } else {
+                resultsDiv.innerHTML += "<p>No results found.</p>";
+            }
+        }
+
+        function openWaze(lat, lng) {
+            const wazeUrl = `https://www.waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+            window.open(wazeUrl, "_blank");
+        }
+    </script>
+</body>
+</html>
